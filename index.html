@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Plano de Leitura da Bíblia 2026</title>
+<style>
+body { font-family: Arial, sans-serif; background:#f5f5f5; margin:20px; }
+h1 { text-align:center; }
+h2 { background:#555; color:#fff; padding:8px; }
+table { width:100%; border-collapse:collapse; background:#fff; margin-bottom:30px; }
+th, td { border:1px solid #ccc; padding:6px; font-size:14px; }
+th { background:#eee; }
+input[type=checkbox] { transform:scale(1.2); cursor:pointer; }
+/* Estilo da barra de progresso */
+#progressoContainer {
+  width: 80%;
+  background: #ddd;
+  margin: 20px auto;
+  border-radius: 20px;
+  overflow: hidden;
+  height: 25px;
+  box-shadow: inset 0 0 5px #aaa;
+}
+#progressoBar {
+  height: 100%;
+  width: 0%;
+  background: #4caf50;
+  text-align: center;
+  line-height: 25px;
+  color: white;
+  font-weight: bold;
+  transition: width 0.3s;
+}
+</style>
+</head>
+<body>
+
+<h1>📖 Plano de Leitura da Bíblia – 2026</h1>
+<div id="progressoContainer">
+  <div id="progressoBar">0%</div>
+</div>
+
+<script>
+let contador = 0;
+
+// function to hover on each line
+document.addEventListener("mouseover", function(e){
+  if(e.target.tagName === "TD"){
+    let tr = e.target.parentElement;
+    Array.from(tr.children).forEach(td => {
+      td.style.backgroundColor = "#ffffcc";
+    });
+  }
+});
+
+// function to remove hover effect
+document.addEventListener("mouseout", function(e){
+  if(e.target.tagName === "TD"){
+    let tr = e.target.parentElement;
+    Array.from(tr.children).forEach(td => {
+      td.style.backgroundColor = "";
+    });
+  }
+});
+
+// Cria a tabela para cada mês
+function tabela(mes, dados){
+  document.write("<h2>"+mes+"</h2>");
+  document.write("<table><tr><th>Dia</th><th>Leitura</th><th>Lido</th></tr>");
+
+  dados.forEach((d,i)=>{
+    let id = "chk_" + contador++;
+    document.write(`
+      <tr>
+        <td>${i+1}</td>
+        <td>${d}</td>
+        <td><input type="checkbox" id="${id}" onchange="salvar('${id}')"></td>
+      </tr>
+    `);
+  });
+
+  document.write("</table>");
+}
+
+// Salva o checkbox no localStorage e atualiza progresso
+function salvar(id){
+  localStorage.setItem(id, document.getElementById(id).checked);
+  atualizarProgresso();
+}
+
+// Carrega os checkboxes salvos
+function carregar(){
+  for(let i=0;i<contador;i++){
+    let id = "chk_" + i;
+    let val = localStorage.getItem(id);
+    if(val === "true"){
+      document.getElementById(id).checked = true;
+    }
+  }
+  atualizarProgresso();
+}
+
+// Função para atualizar o contador de progresso
+function atualizarProgresso(){
+  let total = contador;
+  let concluidos = 0;
+  for(let i=0;i<contador;i++){
+    if(document.getElementById("chk_" + i).checked) concluidos++;
+  }
+  let perc = Math.round((concluidos / total) * 100);
+  let barra = document.getElementById("progressoBar");
+  barra.style.width = perc + "%";
+  barra.innerText = perc + "%";
+}
+</script>
+
+<script>
+tabela("Janeiro", [
+"Gênesis 1 – 3","Gênesis 4 – 6","Gênesis 7 – 9","Gênesis 10 – 11",
+"Jó 1 – 4","Jó 5 – 7","Jó 8 – 10","Jó 11 – 13","Jó 14 – 17",
+"Jó 18 – 20","Jó 21 – 24","Jó 25 – 27","Jó 28 – 31","Jó 32 – 34",
+"Jó 35 – 38","Jó 39 – 42","Gênesis 12 – 15","Gênesis 16 – 19",
+"Gênesis 20 – 22","Gênesis 23 – 26","Gênesis 27 – 29","Gênesis 30 – 32",
+"Gênesis 33 – 36","Gênesis 37 – 39","Gênesis 40 – 42",
+"Gênesis 43 – 46","Gênesis 47 – 50","Êxodo 1 – 4","Êxodo 5 – 7",
+"Êxodo 8 – 10","Êxodo 11 – 13"
+]);
+
+tabela("Fevereiro", [
+"Êxodo 14 – 17","Êxodo 18 – 20","Êxodo 21 – 24","Êxodo 25 – 27",
+"Êxodo 28 – 31","Êxodo 32 – 34","Êxodo 35 – 37","Êxodo 38 – 40",
+"Levítico 1 – 4","Levítico 5 – 7","Levítico 8 – 10","Levítico 11 – 13",
+"Levítico 14 – 16","Levítico 17 – 19","Levítico 20 – 23",
+"Levítico 24 – 27","Números 1 – 3","Números 4 – 6",
+"Números 7 – 10","Números 11 – 14","Números 15 – 17",
+"Números 18 – 20","Números 21 – 24","Números 25 – 27",
+"Números 28 – 30","Números 31 – 33","Números 34 – 36",
+"Deuteronômio 1 – 3"
+]);
+
+tabela("Março", [
+"Deuteronômio 4 – 6","Deuteronômio 7 – 9","Deuteronômio 10 – 12",
+"Deuteronômio 13 – 16","Deuteronômio 17 – 19","Deuteronômio 20 – 22",
+"Deuteronômio 23 – 25","Deuteronômio 26 – 28","Deuteronômio 29 – 31",
+"Deuteronômio 32 – 34","Josué 1 – 4","Josué 5 – 7","Josué 8 – 11",
+"Josué 12 – 15","Josué 16 – 18","Josué 19 – 21","Josué 22 – 24",
+"Juízes 1 – 4","Juízes 5 – 8","Juízes 9 – 12","Juízes 13 – 15",
+"Juízes 16 – 18","Juízes 19 – 21","Rute 1 – 4",
+"1 Samuel 1 – 3","1 Samuel 4 – 7","1 Samuel 8 – 10",
+"1 Samuel 11 – 13","1 Samuel 14 – 16","1 Samuel 17 – 20",
+"1 Samuel 21 – 24"
+]);
+
+tabela("Abril", [
+"1 Samuel 25 – 28","1 Samuel 29 – 31","2 Samuel 1 – 4","2 Samuel 5 – 8",
+"2 Samuel 9 – 12","2 Samuel 13 – 15","2 Samuel 16 – 18",
+"2 Samuel 19 – 21","2 Samuel 22 – 24","Salmos 1 – 3","Salmos 4 – 6",
+"Salmos 7 – 9","Salmos 10 – 12","Salmos 13 – 15","Salmos 16 – 18",
+"Salmos 19 – 21","Salmos 22 – 24","Salmos 25 – 27","Salmos 28 – 30",
+"Salmos 31 – 33","Salmos 34 – 36","Salmos 37 – 39","Salmos 40 – 42",
+"Salmos 43 – 45","Salmos 46 – 48","Salmos 49 – 51",
+"Salmos 52 – 54","Salmos 55 – 57","Salmos 58 – 60",
+"Salmos 61 – 63"
+]);
+
+tabela("Maio", [
+"Salmos 64 – 66","Salmos 67 – 69","Salmos 70 – 72","Salmos 73 – 75",
+"Salmos 76 – 78","Salmos 79 – 81","Salmos 82 – 84","Salmos 85 – 87",
+"Salmos 88 – 90","Salmos 91 – 93","Salmos 94 – 96","Salmos 97 – 99",
+"Salmos 100 – 102","Salmos 103 – 105","Salmos 106 – 108",
+"Salmos 109 – 111","Salmos 112 – 114","Salmos 115 – 118",
+"Salmos 119","Salmos 120 – 123","Salmos 124 – 126",
+"Salmos 127 – 129","Salmos 130 – 132","Salmos 133 – 135",
+"Salmos 136 – 138","Salmos 139 – 141","Salmos 142 – 144",
+"Salmos 145 – 147","Salmos 148 – 150","1 Reis 1 – 4",
+"Provérbios 1 – 3"
+]);
+
+tabela("Junho", [
+"Provérbios 4 – 7","Provérbios 8 – 11","Provérbios 12 – 14",
+"Provérbios 15 – 18","Provérbios 19 – 21","Provérbios 22 – 24",
+"Provérbios 25 – 28","Provérbios 29 – 31","Eclesiastes 1 – 3",
+"Eclesiastes 4 – 6","Eclesiastes 7 – 9","Eclesiastes 10 – 12",
+"Cânticos 1 – 4","Cânticos 5 – 8","1 Reis 5 – 7","1 Reis 8 – 10",
+"1 Reis 11 – 13","1 Reis 14 – 16","1 Reis 17 – 19",
+"1 Reis 20 – 22","2 Reis 1 – 3","2 Reis 4 – 6",
+"2 Reis 7 – 10","2 Reis 11 – 13","Joel 1 – 3","2 Reis 14",
+"Amós 1 – 3","Amós 4 – 6","Amós 7 – 9","2 Reis 15 – 17"
+]);
+
+tabela("Julho", [
+"Oséias 1 – 4","Oséias 5 – 7","Oséias 8 – 10","Oséias 11 – 14",
+"2 Reis 18 – 19","Isaías 1 – 3","Isaías 4 – 6","Isaías 7 – 9",
+"Isaías 10 – 12","Isaías 13 – 15","Isaías 16 – 18",
+"Isaías 19 – 21","Isaías 22 – 24","Isaías 25 – 27",
+"Isaías 28 – 30","Isaías 31 – 33","Isaías 34 – 36",
+"Isaías 37 – 39","Isaías 40 – 42","Isaías 43 – 45",
+"Isaías 46 – 48","Isaías 49 – 51","Isaías 52 – 54",
+"Isaías 55 – 57","Isaías 58 – 60","Isaías 61 – 63",
+"Isaías 64 – 66","Miquéias 1 – 4","Miquéias 5 – 7",
+"Naum 1 – 3","Sofonias 1 – 3"
+]);
+
+tabela("Agosto", [
+"Habacuque 1 – 3","Obadias / Jeremias 1","Jeremias 2 – 5",
+"Jeremias 6 – 8","Jeremias 9 – 12","Jeremias 13 – 16",
+"Jeremias 17 – 20","Jeremias 21 – 23","Jeremias 24 – 26",
+"Jeremias 27 – 29","Jeremias 30 – 32","Jeremias 33 – 37",
+"2 Reis 25","Jeremias 38 – 42","Jeremias 43 – 46",
+"Jeremias 47 – 49","Jeremias 50 – 52","Lamentações 1 – 5",
+"1 Crônicas 1 – 3","1 Crônicas 4 – 6","1 Crônicas 7 – 9",
+"1 Crônicas 10 – 13","1 Crônicas 14 – 16","1 Crônicas 17 – 19",
+"1 Crônicas 20 – 23","1 Crônicas 24 – 26","1 Crônicas 27 – 29",
+"2 Crônicas 1 – 3","2 Crônicas 4 – 6","2 Crônicas 7 – 9",
+"2 Crônicas 10 – 13"
+]);
+
+tabela("Setembro", [
+"2 Crônicas 14 – 16","2 Crônicas 17 – 19","2 Crônicas 20 – 22",
+"2 Crônicas 23 – 25","2 Crônicas 26 – 29","2 Crônicas 30 – 33",
+"2 Crônicas 34 – 36","Esdras 1 – 4","Ezequiel 1 – 4",
+"Ezequiel 5 – 8","Ezequiel 9 – 12","Ezequiel 13 – 16",
+"Ezequiel 17 – 20","Ezequiel 21 – 24","Ezequiel 25 – 27",
+"Ezequiel 28 – 30","Ezequiel 31 – 33","Ezequiel 34 – 36",
+"Ezequiel 37 – 39","Ezequiel 40 – 42","Ezequiel 43 – 45",
+"Ezequiel 46 – 48","Daniel 1 – 3","Daniel 4 – 6",
+"Daniel 7 – 9","Daniel 10 – 12","Ester 1 – 3",
+"Ester 4 – 7","Ester 8 – 10","Esdras 1 – 4"
+]);
+
+tabela("Outubro", [
+"Ageu 1 – 2 / Zacarias 1","Zacarias 2 – 5","Zacarias 6 – 10",
+"Zacarias 11 – 14","Esdras 5 – 7","Esdras 8 – 10",
+"Neemias 1 – 3","Neemias 4 – 6","Neemias 7 – 9",
+"Neemias 10 – 13","Malaquias 1 – 4","Mateus 1 – 4",
+"Mateus 5 – 7","Mateus 8 – 11","Mateus 12 – 15",
+"Mateus 16 – 19","Mateus 20 – 22","Mateus 23 – 25",
+"Mateus 26 – 28","Marcos 1 – 3","Marcos 4 – 6",
+"Marcos 7 – 10","Marcos 11 – 13","Marcos 14 – 16",
+"Lucas 1 – 3","Lucas 4 – 6","Lucas 7 – 9",
+"Lucas 10 – 13","Lucas 14 – 17","Lucas 18 – 21",
+"Lucas 22 – 24"
+]);
+
+tabela("Novembro", [
+"João 1 – 3","João 4 – 6","João 7 – 10","João 11 – 13",
+"João 14 – 17","João 18 – 21","Atos 1 – 3","Atos 4 – 6",
+"Atos 7 – 9","Atos 10 – 13","Tiago 1 – 2","Tiago 3 – 5",
+"Atos 14 / Gálatas 1 – 3","Gálatas 4 – 6","Atos 15 – 19",
+"1 Tessalonicenses 1 – 5","2 Tessalonicenses 1 – 3",
+"1 Coríntios 1 – 4","1 Coríntios 5 – 8","1 Coríntios 9 – 12",
+"1 Coríntios 13 – 16","2 Coríntios 1 – 3","2 Coríntios 4 – 6",
+"2 Coríntios 7 – 9","2 Coríntios 10 – 13","Romanos 1 – 4",
+"Romanos 5 – 8","Romanos 9 – 11","Romanos 12 – 16",
+"Atos 20 – 22"
+]);
+
+tabela("Dezembro", [
+"Atos 23 – 25","Atos 26 – 28","Efésios 1 – 3","Efésios 4 – 6",
+"Filipenses 1 – 4","Colossenses 1 – 4","Hebreus 1 – 4",
+"Hebreus 5 – 7","Hebreus 8 – 10","Hebreus 11 – 13",
+"Filemom","1 Pedro 1 – 2","1 Pedro 3 – 5","2 Pedro 1 – 3",
+"1 Timóteo 1 – 3","1 Timóteo 4 – 6","Tito 1 – 3",
+"2 Timóteo 1 – 4","1 João 1 – 2","1 João 3 – 5",
+"2 João","3 João","Judas","Apocalipse 1 – 3","Apocalipse 4 – 6",
+"Apocalipse 7 – 9","Apocalipse 10 – 12","Apocalipse 13 – 15",
+"Apocalipse 16 – 18","Apocalipse 19 – 21","Apocalipse 22"
+]);
+
+window.onload = carregar;
+</script>
+
+</body>
+</html>

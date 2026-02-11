@@ -5,7 +5,14 @@ layout: default
 <style>
 h1 { text-align:center; }
 h2 { background:#555; color:#fff; padding:8px; }
-table { width:100%; border-collapse:collapse; background:#fff; margin-bottom:30px; }
+table { 
+    width: 100% !important; 
+    display: table; /* Ensures it behaves like a table */
+    border-collapse: collapse; 
+    background: #fff; 
+    margin-bottom: 30px; 
+    table-layout: auto; /* Allows columns to adjust to content */
+}
 th, td { border:1px solid #ccc; padding:6px; font-size:14px; }
 th { background:#eee; }
 input[type=checkbox] { transform:scale(1.2); cursor:pointer; }

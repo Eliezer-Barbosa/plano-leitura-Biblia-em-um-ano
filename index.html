@@ -27,8 +27,14 @@ th:nth-child(2), td:nth-child(2) { width: 70%; } /* "Leitura" column */
 th:nth-child(3), td:nth-child(3) { width: 15%; text-align: center; } /* "Lido" column */
 
 /* 4. Your existing Progress Bar and Heading styles */
-h1 { text-align:center; color: #159957; } /* Cayman green color */
-h2 { background:#555; color:#fff; padding:12px; margin-top: 30px; border-radius: 4px; }
+h2 { 
+  background: #2f363d; /* Darker, professional gray */
+  color: #ffffff !important; /* Forces the text to be white */
+  padding: 12px; 
+  margin-top: 30px; 
+  border-radius: 4px;
+  font-size: 1.5rem;
+}
 th, td { border:1px solid #eee; padding:12px; font-size:16px; }
 th { background:#f3f6f8; color: #159957; }
 input[type=checkbox] { transform:scale(1.5); cursor:pointer; }
@@ -54,7 +60,6 @@ input[type=checkbox] { transform:scale(1.5); cursor:pointer; }
 }
 </style>
 
-<h1>📖 Plano de Leitura da Bíblia – 2026</h1>
 <div id="progressoContainer">
   <div id="progressoBar">0%</div>
 </div>

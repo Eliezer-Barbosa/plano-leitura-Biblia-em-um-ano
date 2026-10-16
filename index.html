@@ -80,6 +80,7 @@ const EMAIL_AUTORIZADO = "eliezer1789@gmail.com";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 let usuarioAutenticado = null;
 let sincronizacaoPendente = null;
+let progressoLocalPendente = {};
 
 let contador = 0;
 
@@ -156,12 +157,13 @@ function aplicarProgresso(progresso) {
 }
 
 function carregarProgressoLocal() {
-  const progresso = {};
+  progressoLocalPendente = {};
   for (let i = 0; i < contador; i++) {
     const id = "chk_" + i;
-    progresso[id] = localStorage.getItem(id) === "true";
+    progressoLocalPendente[id] = localStorage.getItem(id) === "true";
+    document.getElementById(id).checked = false;
   }
-  aplicarProgresso(progresso);
+  atualizarProgresso();
 }
 
 // Salva localmente e sincroniza com a nuvem após pequenas pausas.
@@ -214,7 +216,7 @@ async function sairDaConta() {
   usuarioAutenticado = null;
   definirMarcacoesAtivas(false);
   carregarProgressoLocal();
-  definirStatus("Você saiu. Entre novamente para sincronizar e alterar as marcações.");
+  definirStatus("Você saiu. Entre novamente para ver e sincronizar suas marcações.");
 }
 
 async function iniciarSincronizacao() {
@@ -249,7 +251,7 @@ async function iniciarSincronizacao() {
     return;
   }
 
-  const local = lerProgressoAtual();
+  const local = progressoLocalPendente;
   let progressoFinal = local;
   if (registro && registro.progress) {
     progressoFinal = { ...registro.progress };

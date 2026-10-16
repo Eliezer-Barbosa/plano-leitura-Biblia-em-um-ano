@@ -266,15 +266,12 @@ async function iniciarSincronizacao() {
   }
 
   const local = progressoLocalPendente;
-  let progressoFinal = local;
-  if (registro && registro.progress) {
-    progressoFinal = { ...registro.progress };
-    // Preserva marcações antigas deste dispositivo na primeira sincronização.
-    for (let i = 0; i < contador; i++) {
-      const id = "chk_" + i;
-      progressoFinal[id] = progressoFinal[id] === true || local[id] === true;
-    }
-  }
+  // Se já existe progresso na nuvem, ele é a fonte de verdade.
+  // Não combinar com OR: isso impediria que uma leitura desmarcada fosse sincronizada.
+  // Só usamos o progresso local quando ainda não existe registro na nuvem.
+  const progressoFinal = registro && registro.progress
+    ? { ...registro.progress }
+    : { ...local };
 
   aplicarProgresso(progressoFinal);
   definirMarcacoesAtivas(true);

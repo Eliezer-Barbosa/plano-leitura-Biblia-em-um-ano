@@ -60,11 +60,27 @@ input[type=checkbox] { transform:scale(1.5); cursor:pointer; }
 }
 </style>
 
+
+<div id="authContainer" style="margin: 20px 0; padding: 16px; border: 1px solid #dce6f0; border-radius: 8px;">
+  <strong>Sincronização entre dispositivos</strong>
+  <p id="authStatus" role="status">Verificando acesso...</p>
+  <button id="loginButton" type="button" onclick="entrarComEmail()" style="padding: 10px 14px; cursor: pointer;">Entrar com meu e-mail</button>
+  <button id="logoutButton" type="button" onclick="sairDaConta()" style="padding: 10px 14px; cursor: pointer; display: none;">Sair</button>
+</div>
+
 <div id="progressoContainer">
   <div id="progressoBar">0%</div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL = "https://asrdxwjadkpbuhqnvkns.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_9SOmkyilZY-2uttPPvx6LQ_LyNccwne";
+const EMAIL_AUTORIZADO = "eliezer1789@gmail.com";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let usuarioAutenticado = null;
+let sincronizacaoPendente = null;
+
 let contador = 0;
 
 // function to hover on each line
@@ -106,22 +122,147 @@ function tabela(mes, dados){
   document.write("</table>");
 }
 
-// Salva o checkbox no localStorage e atualiza progresso
-function salvar(id){
-  localStorage.setItem(id, document.getElementById(id).checked);
+function definirStatus(mensagem) {
+  const status = document.getElementById("authStatus");
+  if (status) status.textContent = mensagem;
+}
+
+function definirMarcacoesAtivas(ativo) {
+  for (let i = 0; i < contador; i++) {
+    const checkbox = document.getElementById("chk_" + i);
+    if (checkbox) checkbox.disabled = !ativo;
+  }
+  document.getElementById("loginButton").style.display = ativo ? "none" : "inline-block";
+  document.getElementById("logoutButton").style.display = ativo ? "inline-block" : "none";
+}
+
+function lerProgressoAtual() {
+  const progresso = {};
+  for (let i = 0; i < contador; i++) {
+    const id = "chk_" + i;
+    progresso[id] = document.getElementById(id).checked;
+  }
+  return progresso;
+}
+
+function aplicarProgresso(progresso) {
+  for (let i = 0; i < contador; i++) {
+    const id = "chk_" + i;
+    const marcado = progresso && progresso[id] === true;
+    document.getElementById(id).checked = marcado;
+    localStorage.setItem(id, String(marcado));
+  }
   atualizarProgresso();
 }
 
-// Carrega os checkboxes salvos
-function carregar(){
-  for(let i=0;i<contador;i++){
-    let id = "chk_" + i;
-    let val = localStorage.getItem(id);
-    if(val === "true"){
-      document.getElementById(id).checked = true;
+function carregarProgressoLocal() {
+  const progresso = {};
+  for (let i = 0; i < contador; i++) {
+    const id = "chk_" + i;
+    progresso[id] = localStorage.getItem(id) === "true";
+  }
+  aplicarProgresso(progresso);
+}
+
+// Salva localmente e sincroniza com a nuvem após pequenas pausas.
+function salvar(id) {
+  if (!usuarioAutenticado) {
+    document.getElementById(id).checked = false;
+    definirStatus("Entre com o e-mail autorizado para alterar e sincronizar suas marcações.");
+    return;
+  }
+  localStorage.setItem(id, String(document.getElementById(id).checked));
+  atualizarProgresso();
+  clearTimeout(sincronizacaoPendente);
+  sincronizacaoPendente = setTimeout(salvarProgressoNaNuvem, 500);
+}
+
+async function salvarProgressoNaNuvem() {
+  if (!usuarioAutenticado) return;
+  const { error } = await supabaseClient
+    .from("bible_reading_progress")
+    .upsert({
+      user_id: usuarioAutenticado.id,
+      progress: lerProgressoAtual(),
+      updated_at: new Date().toISOString()
+    }, { onConflict: "user_id" });
+
+  if (error) {
+    definirStatus("Não foi possível sincronizar agora. Suas marcações continuam salvas neste dispositivo; tente novamente mais tarde.");
+    console.error("Erro ao sincronizar progresso:", error.message);
+  } else {
+    definirStatus("Conectado como " + EMAIL_AUTORIZADO + ". Suas marcações estão sincronizadas.");
+  }
+}
+
+async function entrarComEmail() {
+  definirStatus("Enviando link de acesso para " + EMAIL_AUTORIZADO + "...");
+  const { error } = await supabaseClient.auth.signInWithOtp({
+    email: EMAIL_AUTORIZADO,
+    options: { emailRedirectTo: window.location.href }
+  });
+  if (error) {
+    definirStatus("Não foi possível enviar o link. Confira as configurações de e-mail do Supabase e as URLs de redirecionamento.");
+    console.error("Erro ao solicitar acesso:", error.message);
+  } else {
+    definirStatus("Se o envio estiver habilitado, você receberá um link em " + EMAIL_AUTORIZADO + ". Abra-o neste dispositivo para entrar.");
+  }
+}
+
+async function sairDaConta() {
+  await supabaseClient.auth.signOut();
+  usuarioAutenticado = null;
+  definirMarcacoesAtivas(false);
+  carregarProgressoLocal();
+  definirStatus("Você saiu. Entre novamente para sincronizar e alterar as marcações.");
+}
+
+async function iniciarSincronizacao() {
+  definirMarcacoesAtivas(false);
+  carregarProgressoLocal();
+
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error || !data.session) {
+    definirStatus("Entre com o e-mail autorizado para sincronizar suas marcações entre dispositivos.");
+    return;
+  }
+
+  const usuario = data.session.user;
+  if ((usuario.email || "").toLowerCase() !== EMAIL_AUTORIZADO) {
+    await supabaseClient.auth.signOut();
+    definirStatus("Este plano permite sincronização apenas pela conta autorizada.");
+    return;
+  }
+
+  usuarioAutenticado = usuario;
+  definirStatus("Carregando suas marcações sincronizadas...");
+  const { data: registro, error: erroLeitura } = await supabaseClient
+    .from("bible_reading_progress")
+    .select("progress")
+    .eq("user_id", usuario.id)
+    .maybeSingle();
+
+  if (erroLeitura) {
+    usuarioAutenticado = null;
+    definirStatus("A tabela ainda não está pronta ou houve um erro de acesso. Execute supabase-setup.sql no SQL Editor do Supabase.");
+    console.error("Erro ao carregar progresso:", erroLeitura.message);
+    return;
+  }
+
+  const local = lerProgressoAtual();
+  let progressoFinal = local;
+  if (registro && registro.progress) {
+    progressoFinal = { ...registro.progress };
+    // Preserva marcações antigas deste dispositivo na primeira sincronização.
+    for (let i = 0; i < contador; i++) {
+      const id = "chk_" + i;
+      progressoFinal[id] = progressoFinal[id] === true || local[id] === true;
     }
   }
-  atualizarProgresso();
+
+  aplicarProgresso(progressoFinal);
+  definirMarcacoesAtivas(true);
+  await salvarProgressoNaNuvem();
 }
 
 // Função para atualizar o contador de progresso
@@ -291,5 +432,5 @@ tabela("Dezembro", [
 "Apocalipse 16 – 18","Apocalipse 19 – 21","Apocalipse 22"
 ]);
 
-window.onload = carregar;
+window.addEventListener('load', iniciarSincronizacao);
 </script>

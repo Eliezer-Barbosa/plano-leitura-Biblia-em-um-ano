@@ -64,7 +64,8 @@ input[type=checkbox] { transform:scale(1.5); cursor:pointer; }
 <div id="authContainer" style="margin: 20px 0; padding: 16px; border: 1px solid #dce6f0; border-radius: 8px;">
   <strong>Sincronização entre dispositivos</strong>
   <p id="authStatus" role="status">Verificando acesso...</p>
-  <button id="loginButton" type="button" onclick="entrarComEmail()" style="padding: 10px 14px; cursor: pointer;">Entrar com meu e-mail</button>
+  <input id="passwordInput" type="password" autocomplete="current-password" placeholder="Sua senha" aria-label="Senha" style="padding: 10px 12px; margin: 8px 8px 8px 0; max-width: 220px;">
+  <button id="loginButton" type="button" onclick="entrarComSenha()" style="padding: 10px 14px; cursor: pointer;">Entrar</button>
   <button id="logoutButton" type="button" onclick="sairDaConta()" style="padding: 10px 14px; cursor: pointer; display: none;">Sair</button>
 </div>
 
@@ -134,6 +135,7 @@ function definirMarcacoesAtivas(ativo) {
     if (checkbox) checkbox.disabled = !ativo;
   }
   document.getElementById("loginButton").style.display = ativo ? "none" : "inline-block";
+  document.getElementById("passwordInput").style.display = ativo ? "none" : "inline-block";
   document.getElementById("logoutButton").style.display = ativo ? "inline-block" : "none";
 }
 
@@ -173,7 +175,7 @@ function carregarProgressoLocal() {
 function salvar(id) {
   if (!usuarioAutenticado) {
     document.getElementById(id).checked = false;
-    definirStatus("Entre com o e-mail autorizado para alterar e sincronizar suas marcações.");
+    definirStatus("Entre com seu e-mail e senha para alterar e sincronizar suas marcações.");
     return;
   }
   localStorage.setItem(id, String(document.getElementById(id).checked));
@@ -200,18 +202,27 @@ async function salvarProgressoNaNuvem() {
   }
 }
 
-async function entrarComEmail() {
-  definirStatus("Enviando link de acesso para " + EMAIL_AUTORIZADO + "...");
-  const { error } = await supabaseClient.auth.signInWithOtp({
-    email: EMAIL_AUTORIZADO,
-    options: { emailRedirectTo: window.location.href }
-  });
-  if (error) {
-    definirStatus("Não foi possível enviar o link. Confira as configurações de e-mail do Supabase e as URLs de redirecionamento.");
-    console.error("Erro ao solicitar acesso:", error.message);
-  } else {
-    definirStatus("Se o envio estiver habilitado, você receberá um link em " + EMAIL_AUTORIZADO + ". Abra-o neste dispositivo para entrar.");
+async function entrarComSenha() {
+  const senha = document.getElementById("passwordInput").value;
+  if (!senha) {
+    definirStatus("Digite sua senha para entrar.");
+    return;
   }
+
+  definirStatus("Verificando seus dados de acesso...");
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email: EMAIL_AUTORIZADO,
+    password: senha
+  });
+
+  if (error) {
+    definirStatus("Não foi possível entrar. Confira a senha e tente novamente.");
+    console.error("Erro ao entrar:", error.message);
+    return;
+  }
+
+  document.getElementById("passwordInput").value = "";
+  await iniciarSincronizacao();
 }
 
 async function sairDaConta() {
@@ -228,7 +239,7 @@ async function iniciarSincronizacao() {
 
   const { data, error } = await supabaseClient.auth.getSession();
   if (error || !data.session) {
-    definirStatus("Entre com o e-mail autorizado para sincronizar suas marcações entre dispositivos.");
+    definirStatus("Entre com seu e-mail e senha para sincronizar suas marcações entre dispositivos.");
     return;
   }
 

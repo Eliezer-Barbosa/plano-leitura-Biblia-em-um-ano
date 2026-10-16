@@ -18,7 +18,7 @@ on public.bible_reading_progress for select
 to authenticated
 using (
   user_id = (select auth.uid())
-  and (select auth.jwt() ->> 'email') = 'eliezer1789@gmail.com'
+  and (select auth.jwt() ->> 'email') = 'eliezer1789j@gmail.com'
 );
 
 drop policy if exists "Only owner email can insert reading progress" on public.bible_reading_progress;
@@ -27,7 +27,7 @@ on public.bible_reading_progress for insert
 to authenticated
 with check (
   user_id = (select auth.uid())
-  and (select auth.jwt() ->> 'email') = 'eliezer1789@gmail.com'
+  and (select auth.jwt() ->> 'email') = 'eliezer1789j@gmail.com'
 );
 
 drop policy if exists "Only owner email can update reading progress" on public.bible_reading_progress;
@@ -36,11 +36,11 @@ on public.bible_reading_progress for update
 to authenticated
 using (
   user_id = (select auth.uid())
-  and (select auth.jwt() ->> 'email') = 'eliezer1789@gmail.com'
+  and (select auth.jwt() ->> 'email') = 'eliezer1789j@gmail.com'
 )
 with check (
   user_id = (select auth.uid())
-  and (select auth.jwt() ->> 'email') = 'eliezer1789@gmail.com'
+  and (select auth.jwt() ->> 'email') = 'eliezer1789j@gmail.com'
 );
 
 drop policy if exists "Only owner email can delete reading progress" on public.bible_reading_progress;
@@ -49,5 +49,5 @@ on public.bible_reading_progress for delete
 to authenticated
 using (
   user_id = (select auth.uid())
-  and (select auth.jwt() ->> 'email') = 'eliezer1789@gmail.com'
+  and (select auth.jwt() ->> 'email') = 'eliezer1789j@gmail.com'
 );

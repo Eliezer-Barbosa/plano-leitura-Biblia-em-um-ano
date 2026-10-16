@@ -160,8 +160,11 @@ function carregarProgressoLocal() {
   progressoLocalPendente = {};
   for (let i = 0; i < contador; i++) {
     const id = "chk_" + i;
-    progressoLocalPendente[id] = localStorage.getItem(id) === "true";
-    document.getElementById(id).checked = false;
+    const marcado = localStorage.getItem(id) === "true";
+    progressoLocalPendente[id] = marcado;
+    // Exibe o progresso salvo neste navegador mesmo antes do login.
+    // As caixas continuam desativadas até a autenticação ser concluída.
+    document.getElementById(id).checked = marcado;
   }
   atualizarProgresso();
 }

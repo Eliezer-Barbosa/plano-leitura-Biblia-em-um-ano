@@ -84,6 +84,45 @@ let sincronizacaoPendente = null;
 let progressoLocalPendente = {};
 
 let contador = 0;
+let indiceDiaOriginal = 0;
+const diaOriginalPorCheckbox = [];
+const totalDiasOriginais = 365;
+
+// Divide uma leitura diária em capítulos individuais, preservando livros e intervalos.
+function expandirLeitura(leitura) {
+  const capitulos = [];
+  leitura.split("/").forEach(parte => {
+    const texto = parte.trim();
+    const correspondencia = texto.match(/^(.*?)\s+(\d+)(?:\s*[–-]\s*(\d+))?$/);
+    if (correspondencia) {
+      const livro = correspondencia[1].trim();
+      const inicio = Number(correspondencia[2]);
+      const fim = correspondencia[3] ? Number(correspondencia[3]) : inicio;
+      for (let capitulo = inicio; capitulo <= fim; capitulo++) {
+        capitulos.push(livro + " " + capitulo);
+      }
+    } else {
+      // Livros de capítulo único, como Obadias, Filemom, 2 João, 3 João e Judas.
+      capitulos.push(texto);
+    }
+  });
+  return capitulos;
+}
+
+// Converte marcações antigas (uma por dia) em marcações por capítulo.
+function migrarProgressoDiario(progressoAntigo) {
+  const novo = { schemaVersion: 2 };
+  for (let i = 0; i < contador; i++) {
+    const dia = diaOriginalPorCheckbox[i];
+    novo["chk_" + i] = progressoAntigo["chk_" + dia] === true;
+  }
+  for (let i = 0; i < contador; i++) {
+    if (progressoAntigo["chk_" + diaOriginalPorCheckbox[i]] === true) {
+      novo["chk_" + i] = true;
+    }
+  }
+  return novo;
+}
 
 // function to hover on each line
 document.addEventListener("mouseover", function(e){
@@ -110,15 +149,19 @@ function tabela(mes, dados){
   document.write("<h2>"+mes+"</h2>");
   document.write("<table><tr><th>Dia</th><th>Leitura</th><th>Lido</th></tr>");
 
-  dados.forEach((d,i)=>{
-    let id = "chk_" + contador++;
-    document.write(`
-      <tr>
-        <td>${i+1}</td>
-        <td>${d}</td>
-        <td><input type="checkbox" id="${id}" onchange="salvar('${id}')"></td>
-      </tr>
-    `);
+  dados.forEach((leituraDiaria, indiceDoMes) => {
+    const diaDoPlano = indiceDiaOriginal++;
+    expandirLeitura(leituraDiaria).forEach(capitulo => {
+      const id = "chk_" + contador++;
+      diaOriginalPorCheckbox.push(diaDoPlano);
+      document.write(`
+        <tr>
+          <td>${indiceDoMes + 1}</td>
+          <td>${capitulo}</td>
+          <td><input type="checkbox" id="${id}" onchange="salvar('${id}')"></td>
+        </tr>
+      `);
+    });
   });
 
   document.write("</table>");
@@ -190,7 +233,7 @@ async function salvarProgressoNaNuvem() {
     .from("bible_reading_progress")
     .upsert({
       user_id: usuarioAutenticado.id,
-      progress: lerProgressoAtual(),
+      progress: { ...lerProgressoAtual(), schemaVersion: 2 },
       updated_at: new Date().toISOString()
     }, { onConflict: "user_id" });
 
@@ -265,13 +308,19 @@ async function iniciarSincronizacao() {
     return;
   }
 
-  const local = progressoLocalPendente;
-  // Se já existe progresso na nuvem, ele é a fonte de verdade.
-  // Não combinar com OR: isso impediria que uma leitura desmarcada fosse sincronizada.
-  // Só usamos o progresso local quando ainda não existe registro na nuvem.
-  const progressoFinal = registro && registro.progress
-    ? { ...registro.progress }
-    : { ...local };
+  let local = progressoLocalPendente;
+  if (local.schemaVersion !== 2) {
+    local = migrarProgressoDiario(local);
+  }
+
+  let progressoFinal;
+  if (registro && registro.progress) {
+    progressoFinal = registro.progress.schemaVersion === 2
+      ? { ...registro.progress }
+      : migrarProgressoDiario(registro.progress);
+  } else {
+    progressoFinal = { ...local };
+  }
 
   aplicarProgresso(progressoFinal);
   definirMarcacoesAtivas(true);
@@ -445,5 +494,18 @@ tabela("Dezembro", [
 "Apocalipse 16 – 18","Apocalipse 19 – 21","Apocalipse 22"
 ]);
 
-window.addEventListener('load', iniciarSincronizacao);
+window.addEventListener('load', () => {
+  if (localStorage.getItem("progressSchemaVersion") !== "2") {
+    const progressoAntigo = {};
+    for (let dia = 0; dia < totalDiasOriginais; dia++) {
+      progressoAntigo["chk_" + dia] = localStorage.getItem("chk_" + dia) === "true";
+    }
+    const progressoMigrado = migrarProgressoDiario(progressoAntigo);
+    for (let i = 0; i < contador; i++) {
+      localStorage.setItem("chk_" + i, String(progressoMigrado["chk_" + i] === true));
+    }
+    localStorage.setItem("progressSchemaVersion", "2");
+  }
+  iniciarSincronizacao();
+});
 </script>

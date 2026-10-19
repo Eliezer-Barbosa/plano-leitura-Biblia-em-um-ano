@@ -214,6 +214,30 @@ function carregarProgressoLocal() {
   atualizarProgresso();
 }
 
+// Leva a página ao primeiro capítulo ainda não concluído.
+function irParaProximaLeitura() {
+  let alvo = null;
+  for (let i = 0; i < contador; i++) {
+    const checkbox = document.getElementById("chk_" + i);
+    if (checkbox && !checkbox.checked) {
+      alvo = checkbox;
+      break;
+    }
+  }
+
+  // Se tudo estiver concluído, mostra a última leitura do plano.
+  if (!alvo && contador > 0) {
+    alvo = document.getElementById("chk_" + (contador - 1));
+  }
+
+  if (alvo) {
+    // Pequeno atraso para a tabela terminar de renderizar antes de rolar.
+    setTimeout(() => {
+      alvo.closest("tr").scrollIntoView({ behavior: "auto", block: "center" });
+    }, 150);
+  }
+}
+
 // Salva localmente e sincroniza com a nuvem após pequenas pausas.
 function salvar(id) {
   if (!usuarioAutenticado) {
@@ -283,6 +307,7 @@ async function iniciarSincronizacao() {
   const { data, error } = await supabaseClient.auth.getSession();
   if (error || !data.session) {
     definirStatus("Entre com seu e-mail e senha para sincronizar suas marcações entre dispositivos.");
+    irParaProximaLeitura();
     return;
   }
 
@@ -324,6 +349,7 @@ async function iniciarSincronizacao() {
 
   aplicarProgresso(progressoFinal);
   definirMarcacoesAtivas(true);
+  irParaProximaLeitura();
   await salvarProgressoNaNuvem();
 }
 

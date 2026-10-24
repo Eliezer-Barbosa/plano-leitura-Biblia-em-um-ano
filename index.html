@@ -61,13 +61,41 @@ details.mes-leitura > summary {
   justify-content: space-between;
   gap: 12px;
 }
+.resumo-progresso-mes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(48%, 320px);
+}
+.trilho-progresso-mes {
+  display: block;
+  flex: 1;
+  height: 12px;
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
+}
+.barra-progresso-mes {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #16a34a, #15803d);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
 .progresso-mes {
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 0.9rem;
+  font-weight: 600;
   white-space: nowrap;
-  background: rgba(255,255,255,0.14);
-  padding: 3px 9px;
-  border-radius: 12px;
+  min-width: 42px;
+  text-align: right;
+}
+@media (max-width: 600px) {
+  .resumo-progresso-mes { width: 55%; gap: 6px; }
+  .trilho-progresso-mes { height: 10px; }
+  .progresso-mes { font-size: 0.8rem; min-width: 36px; }
 }
 details.mes-leitura > table {
   margin-bottom: 0;
@@ -191,7 +219,7 @@ document.addEventListener("mouseout", function(e){
 // Cria a tabela para cada mês
 function tabela(mes, dados){
   const idMes = "mes-" + indiceDiaOriginal;
-  document.write('<details class="mes-leitura" id="'+idMes+'"><summary><span class="nome-mes">'+mes+'</span><span class="progresso-mes" id="progresso-'+idMes+'">0/0</span></summary>');
+  document.write('<details class="mes-leitura" id="'+idMes+'"><summary><span class="nome-mes">'+mes+'</span><span class="resumo-progresso-mes"><span class="trilho-progresso-mes"><span class="barra-progresso-mes" id="barra-'+idMes+'"></span></span><span class="progresso-mes" id="progresso-'+idMes+'">0/0</span></span></summary>');
   document.write("<table><tr><th>Dia</th><th>Leitura</th><th>Lido</th></tr>");
 
   dados.forEach((leituraDiaria, indiceDoMes) => {
@@ -418,7 +446,10 @@ function atualizarProgresso(){
     const caixas = mes.querySelectorAll('input[type="checkbox"]');
     const lidos = Array.from(caixas).filter(caixa => caixa.checked).length;
     const indicador = mes.querySelector(".progresso-mes");
+    const barraMes = mes.querySelector(".barra-progresso-mes");
+    const percentualMes = caixas.length ? Math.round((lidos / caixas.length) * 100) : 0;
     if (indicador) indicador.textContent = lidos + "/" + caixas.length;
+    if (barraMes) barraMes.style.width = percentualMes + "%";
   });
 }
 </script>

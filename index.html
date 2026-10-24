@@ -55,6 +55,20 @@ details.mes-leitura > summary {
 details.mes-leitura > summary:hover {
   background: #414a52;
 }
+details.mes-leitura > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.progresso-mes {
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;
+  background: rgba(255,255,255,0.14);
+  padding: 3px 9px;
+  border-radius: 12px;
+}
 details.mes-leitura > table {
   margin-bottom: 0;
 }
@@ -170,7 +184,8 @@ document.addEventListener("mouseout", function(e){
 
 // Cria a tabela para cada mês
 function tabela(mes, dados){
-  document.write('<details class="mes-leitura"><summary>'+mes+'</summary>');
+  const idMes = "mes-" + indiceDiaOriginal;
+  document.write('<details class="mes-leitura" id="'+idMes+'"><summary><span class="nome-mes">'+mes+'</span><span class="progresso-mes" id="progresso-'+idMes+'">0/0</span></summary>');
   document.write("<table><tr><th>Dia</th><th>Leitura</th><th>Lido</th></tr>");
 
   dados.forEach((leituraDiaria, indiceDoMes) => {
@@ -387,10 +402,18 @@ function atualizarProgresso(){
   for(let i=0;i<contador;i++){
     if(document.getElementById("chk_" + i).checked) concluidos++;
   }
-  let perc = Math.round((concluidos / total) * 100);
+  let perc = total ? Math.round((concluidos / total) * 100) : 0;
   let barra = document.getElementById("progressoBar");
   barra.style.width = perc + "%";
   barra.innerText = perc + "%";
+
+  // Atualiza o contador de capítulos lidos em cada mês.
+  document.querySelectorAll("details.mes-leitura").forEach(mes => {
+    const caixas = mes.querySelectorAll('input[type="checkbox"]');
+    const lidos = Array.from(caixas).filter(caixa => caixa.checked).length;
+    const indicador = mes.querySelector(".progresso-mes");
+    if (indicador) indicador.textContent = lidos + "/" + caixas.length;
+  });
 }
 </script>
 

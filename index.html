@@ -35,6 +35,30 @@ h2 {
   border-radius: 4px;
   font-size: 1.5rem;
 }
+
+/* Meses expansíveis/recolhíveis */
+details.mes-leitura {
+  margin: 18px 0;
+  border: 1px solid #dce6f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+details.mes-leitura > summary {
+  background: #2f363d;
+  color: #fff;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: 600;
+  list-style-position: inside;
+}
+details.mes-leitura > summary:hover {
+  background: #414a52;
+}
+details.mes-leitura > table {
+  margin-bottom: 0;
+}
+
 th, td { border:1px solid #eee; padding:12px; font-size:16px; }
 th { background:#f3f6f8; color: #159957; }
 input[type=checkbox] { transform:scale(1.5); cursor:pointer; }
@@ -146,7 +170,7 @@ document.addEventListener("mouseout", function(e){
 
 // Cria a tabela para cada mês
 function tabela(mes, dados){
-  document.write("<h2>"+mes+"</h2>");
+  document.write('<details class="mes-leitura"><summary>'+mes+'</summary>');
   document.write("<table><tr><th>Dia</th><th>Leitura</th><th>Lido</th></tr>");
 
   dados.forEach((leituraDiaria, indiceDoMes) => {
@@ -164,7 +188,7 @@ function tabela(mes, dados){
     });
   });
 
-  document.write("</table>");
+  document.write("</table></details>");
 }
 
 function definirStatus(mensagem) {
@@ -231,6 +255,9 @@ function irParaProximaLeitura() {
   }
 
   if (alvo) {
+    // Abre o mês da próxima leitura antes de rolar.
+    const mes = alvo.closest("details.mes-leitura");
+    if (mes) mes.open = true;
     // Pequeno atraso para a tabela terminar de renderizar antes de rolar.
     setTimeout(() => {
       alvo.closest("tr").scrollIntoView({ behavior: "auto", block: "center" });

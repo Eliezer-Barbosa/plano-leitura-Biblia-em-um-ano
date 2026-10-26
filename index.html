@@ -159,6 +159,10 @@ let contador = 0;
 let indiceDiaOriginal = 0;
 const diaOriginalPorCheckbox = [];
 const totalDiasOriginais = 365;
+const leiturasComplementares = [
+  "2 Reis 20", "2 Reis 21", "2 Reis 22", "2 Reis 23", "2 Reis 24",
+  "Jonas 1", "Jonas 2", "Jonas 3", "Jonas 4"
+];
 
 // Divide uma leitura diária em capítulos individuais, preservando livros e intervalos.
 function expandirLeitura(leitura) {
@@ -240,6 +244,20 @@ function tabela(mes, dados){
   document.write("</table></details>");
 }
 
+function criarListaComplementar() {
+  document.write('<details class="mes-leitura" id="leituras-complementares"><summary><span class="nome-mes">Leituras complementares do Antigo Testamento</span><span class="resumo-progresso-mes"><span class="trilho-progresso-mes"><span class="barra-progresso-mes" id="barra-complementares"></span></span><span class="progresso-mes" id="progresso-complementares">0/9</span></span></summary>');
+  document.write('<p style="padding: 12px 16px 0; margin-bottom: 0;">Lista separada do cronograma anual, para marcar somente estes capítulos.</p>');
+  document.write('<table><tr><th>Livro</th><th>Capítulo</th><th>Lido</th></tr>');
+  leiturasComplementares.forEach((capitulo, indice) => {
+    const separador = capitulo.lastIndexOf(" ");
+    const livro = capitulo.slice(0, separador);
+    const numero = capitulo.slice(separador + 1);
+    const id = "extra_" + indice;
+    document.write('<tr><td>' + livro + '</td><td>' + numero + '</td><td><input type="checkbox" id="' + id + '" onchange="salvarComplementar(\'' + id + '\')"></td></tr>');
+  });
+  document.write("</table></details>");
+}
+
 function definirStatus(mensagem) {
   const status = document.getElementById("authStatus");
   if (status) status.textContent = mensagem;
@@ -250,6 +268,10 @@ function definirMarcacoesAtivas(ativo) {
     const checkbox = document.getElementById("chk_" + i);
     if (checkbox) checkbox.disabled = !ativo;
   }
+  leiturasComplementares.forEach((_, i) => {
+    const checkbox = document.getElementById("extra_" + i);
+    if (checkbox) checkbox.disabled = !ativo;
+  });
   document.getElementById("loginButton").style.display = ativo ? "none" : "inline-block";
   document.getElementById("passwordInput").style.display = ativo ? "none" : "inline-block";
   document.getElementById("logoutButton").style.display = ativo ? "inline-block" : "none";
@@ -261,6 +283,10 @@ function lerProgressoAtual() {
     const id = "chk_" + i;
     progresso[id] = document.getElementById(id).checked;
   }
+  leiturasComplementares.forEach((_, i) => {
+    const id = "extra_" + i;
+    progresso[id] = document.getElementById(id).checked;
+  });
   return progresso;
 }
 
@@ -271,6 +297,12 @@ function aplicarProgresso(progresso) {
     document.getElementById(id).checked = marcado;
     localStorage.setItem(id, String(marcado));
   }
+  leiturasComplementares.forEach((_, i) => {
+    const id = "extra_" + i;
+    const marcado = progresso && progresso[id] === true;
+    document.getElementById(id).checked = marcado;
+    localStorage.setItem(id, String(marcado));
+  });
   atualizarProgresso();
 }
 
@@ -284,6 +316,12 @@ function carregarProgressoLocal() {
     // As caixas continuam desativadas até a autenticação ser concluída.
     document.getElementById(id).checked = marcado;
   }
+  leiturasComplementares.forEach((_, i) => {
+    const id = "extra_" + i;
+    const marcado = localStorage.getItem(id) === "true";
+    progressoLocalPendente[id] = marcado;
+    document.getElementById(id).checked = marcado;
+  });
   atualizarProgresso();
 }
 
@@ -315,6 +353,18 @@ function irParaProximaLeitura() {
 }
 
 // Salva localmente e sincroniza com a nuvem após pequenas pausas.
+function salvarComplementar(id) {
+  if (!usuarioAutenticado) {
+    document.getElementById(id).checked = false;
+    definirStatus("Entre com sua conta para alterar e sincronizar suas marcações.");
+    return;
+  }
+  localStorage.setItem(id, String(document.getElementById(id).checked));
+  atualizarProgresso();
+  clearTimeout(sincronizacaoPendente);
+  sincronizacaoPendente = setTimeout(salvarProgressoNaNuvem, 500);
+}
+
 function salvar(id) {
   if (!usuarioAutenticado) {
     document.getElementById(id).checked = false;
@@ -606,6 +656,8 @@ tabela("Dezembro", [
 "Apocalipse 7 – 9","Apocalipse 10 – 12","Apocalipse 13 – 15",
 "Apocalipse 16 – 18","Apocalipse 19 – 21","Apocalipse 22"
 ]);
+
+criarListaComplementar();
 
 window.addEventListener('load', () => {
   if (localStorage.getItem("progressSchemaVersion") !== "2") {
